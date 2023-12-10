@@ -142,13 +142,47 @@
             return $(row).children('td').eq(index).text();
         }
 
-        function compare(a, b) {
-            if (!isNaN(a) && !isNaN(b)) {
-                return parseFloat(a) - parseFloat(b);
-            } else if (isValidDate(a) && isValidDate(b)) {
-                return new Date(a) - new Date(b);
+        function extractDateFromString(inputString) {
+            const matches = inputString.match(/(\d{2}\.\d{2}\.\d{4})/);
+            return matches ? new Date(matches[0]) : null;
+        }
+
+        function extractNumberFromString(inputString) {
+            const matches = inputString.match(/(\d+(\,\d{1,2})?)/);
+            return matches ? parseFloat(matches[0].replace(',', '.')) : NaN;
+        }
+
+        function extractAndParse(value) {
+            if (!isNaN(value)) {
+                return parseFloat(value);
+            } else if (isValidDate(value)) {
+                return new Date(value);
             } else {
-                return a.localeCompare(b);
+                const extractedDate = extractDateFromString(value);
+                if (extractedDate !== null) {
+                    return extractedDate
+                }
+
+                const extractedNumber = extractNumberFromString(value);
+                return isNaN(extractedNumber) ? value : extractedNumber;
+            }
+        }
+
+        function compare(a, b) {
+            const parsedA = extractAndParse(a);
+            const parsedB = extractAndParse(b);
+
+            console.log({ parsedA, parsedB });
+
+            if (typeof parsedA === 'number' && typeof parsedB === 'number') {
+                console.log(1);
+                return parsedA - parsedB;
+            } else if (parsedA instanceof Date && parsedB instanceof Date) {
+                console.log(2);
+                return parsedA - parsedB;
+            } else {
+                console.log(3);
+                return String(parsedA).localeCompare(String(parsedB));
             }
         }
 
